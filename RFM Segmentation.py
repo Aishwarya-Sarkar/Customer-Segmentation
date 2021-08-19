@@ -1,3 +1,4 @@
+#copy data into a new df
 data_all= df.copy()
 
 #calculating total the total amount for each line item (unit price * Quantity)

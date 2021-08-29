@@ -1,13 +1,11 @@
-# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-07T20:53:03.304143Z","iopub.execute_input":"2021-08-07T20:53:03.304519Z","iopub.status.idle":"2021-08-07T20:53:04.102745Z","shell.execute_reply.started":"2021-08-07T20:53:03.304437Z","shell.execute_reply":"2021-08-07T20:53:04.101167Z"}}
-# This Python 3 environment comes with many helpful analytics libraries installed
-# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python
-# For example, here's several helpful packages to load
-
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import datetime as dt
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+import warnings
+warnings.filterwarnings("ignore")
 
 # Input data files are available in the read-only "../input/" directory
 # For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
@@ -20,32 +18,35 @@ for dirname, _, filenames in os.walk('/kaggle/input'):
 # You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using "Save & Run All" 
 # You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session
 
-# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-07T20:53:04.104317Z","iopub.execute_input":"2021-08-07T20:53:04.104678Z","iopub.status.idle":"2021-08-07T20:53:05.382009Z","shell.execute_reply.started":"2021-08-07T20:53:04.104639Z","shell.execute_reply":"2021-08-07T20:53:05.381035Z"}}
-data= pd.read_csv('../input/ecommerce-data/data.csv')
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-29T19:53:05.287766Z","iopub.execute_input":"2021-08-29T19:53:05.288163Z","iopub.status.idle":"2021-08-29T19:53:06.082780Z","shell.execute_reply.started":"2021-08-29T19:53:05.288129Z","shell.execute_reply":"2021-08-29T19:53:06.081735Z"}}
+df= pd.read_csv('../input/ecommerce-data/data.csv')
+
+#copy data into new df for analysis
+data=df.copy()
 
 data.head()
+
+# %% [code] {"execution":{"iopub.status.busy":"2021-08-29T19:53:06.084437Z","iopub.execute_input":"2021-08-29T19:53:06.084786Z","iopub.status.idle":"2021-08-29T19:53:06.364777Z","shell.execute_reply.started":"2021-08-29T19:53:06.084751Z","shell.execute_reply":"2021-08-29T19:53:06.363723Z"}}
 data.info()
 
 # %% [markdown]
-# ### Cohort Analysis:
+# ### 1. Cohort Analysis:
 # 
 # We first divide the entire data into different cohorts to understand high-level trends. We use time cohort for our analysis here:
 
-# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-07T20:53:05.384186Z","iopub.execute_input":"2021-08-07T20:53:05.384562Z","iopub.status.idle":"2021-08-07T20:53:07.664831Z","shell.execute_reply.started":"2021-08-07T20:53:05.384523Z","shell.execute_reply":"2021-08-07T20:53:07.663659Z"}}
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-29T19:53:06.366696Z","iopub.execute_input":"2021-08-29T19:53:06.367033Z","iopub.status.idle":"2021-08-29T19:53:09.173283Z","shell.execute_reply.started":"2021-08-29T19:53:06.367003Z","shell.execute_reply":"2021-08-29T19:53:09.172041Z"}}
+#generate invoice month for each line purchase equal to the first day of the month when the purchase was made
 data['InvoiceMonth'] = pd.to_datetime(data['InvoiceDate']).to_numpy().astype('datetime64[M]')
 
+#first invoice month for every customer
 data['CohortMonth'] = data.groupby('CustomerID')['InvoiceMonth'].transform('min')
+
+#drop null values
+data.dropna(inplace=True)
+
 data.head()
 
-data.dropna(inplace=True)
-data.info()
-
-# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-07T20:53:07.666433Z","iopub.execute_input":"2021-08-07T20:53:07.666692Z","iopub.status.idle":"2021-08-07T20:53:07.992428Z","shell.execute_reply.started":"2021-08-07T20:53:07.666665Z","shell.execute_reply":"2021-08-07T20:53:07.991451Z"}}
-'''def get_date_int(df, column):    
-    year = df[column].dt.year    
-    month = df[column].dt.month    
-    day = df[column].dt.day
-    return year, month, day'''
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-29T19:53:09.175416Z","iopub.execute_input":"2021-08-29T19:53:09.175931Z","iopub.status.idle":"2021-08-29T19:53:09.603317Z","shell.execute_reply.started":"2021-08-29T19:53:09.175863Z","shell.execute_reply":"2021-08-29T19:53:09.602242Z"}}
 #drop NaN values
 data.dropna()
 
@@ -65,7 +66,7 @@ diff_mon = invoice_mon - cohort_mon
 data['CohortIndex'] = diff_year * 12 + diff_mon + 1
 data.head()
 
-# %% [code] {"execution":{"iopub.status.busy":"2021-08-07T20:56:07.552573Z","iopub.execute_input":"2021-08-07T20:56:07.552971Z","iopub.status.idle":"2021-08-07T20:56:07.644636Z","shell.execute_reply.started":"2021-08-07T20:56:07.552937Z","shell.execute_reply":"2021-08-07T20:56:07.643719Z"}}
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-29T19:53:09.605025Z","iopub.execute_input":"2021-08-29T19:53:09.605468Z","iopub.status.idle":"2021-08-29T19:53:09.718958Z","shell.execute_reply.started":"2021-08-29T19:53:09.605422Z","shell.execute_reply":"2021-08-29T19:53:09.717968Z"}}
 #group by cohort month and index and find number of unique customers for each grouping
 grouped = data.groupby(['CohortMonth', 'CohortIndex'])['CustomerID'].apply(pd.Series.nunique)\
                                                                     .reset_index()
@@ -76,7 +77,7 @@ grouped
 # %% [markdown]
 # In the table above, the first column values represents the size of every individual cohort, and the subsequent columns represent the number of active customers for that cohort in the subsequent months.
 
-# %% [code] {"execution":{"iopub.status.busy":"2021-08-07T21:21:12.863358Z","iopub.execute_input":"2021-08-07T21:21:12.863821Z","iopub.status.idle":"2021-08-07T21:21:12.894022Z","shell.execute_reply.started":"2021-08-07T21:21:12.863792Z","shell.execute_reply":"2021-08-07T21:21:12.893393Z"}}
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-29T19:53:09.720225Z","iopub.execute_input":"2021-08-29T19:53:09.720545Z","iopub.status.idle":"2021-08-29T19:53:09.766002Z","shell.execute_reply.started":"2021-08-29T19:53:09.720514Z","shell.execute_reply":"2021-08-29T19:53:09.764530Z"}}
 #divide each column by value of the first(cohort size) to find retention rate
 size = grouped.iloc[:,0]
 retention_table = grouped.divide(size, axis=0)
@@ -87,7 +88,7 @@ retention_table.round(3) * 100
 # %% [markdown]
 # Let's now visualize the retention rates on a heatmap:
 
-# %% [code] {"execution":{"iopub.status.busy":"2021-08-07T21:34:37.088903Z","iopub.execute_input":"2021-08-07T21:34:37.089364Z","iopub.status.idle":"2021-08-07T21:34:37.802999Z","shell.execute_reply.started":"2021-08-07T21:34:37.089317Z","shell.execute_reply":"2021-08-07T21:34:37.802043Z"}}
+# %% [code] {"jupyter":{"outputs_hidden":false},"execution":{"iopub.status.busy":"2021-08-29T19:53:09.769513Z","iopub.execute_input":"2021-08-29T19:53:09.769842Z","iopub.status.idle":"2021-08-29T19:53:10.717836Z","shell.execute_reply.started":"2021-08-29T19:53:09.769811Z","shell.execute_reply":"2021-08-29T19:53:10.716747Z"}}
 plt.figure(figsize=(10, 8))
 
 sns.heatmap(data = retention_table,
@@ -97,3 +98,5 @@ sns.heatmap(data = retention_table,
             vmax = 0.5,           
             cmap = 'BuPu')
 plt.show()
+
+# %% [markdown]
